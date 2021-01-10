@@ -89,22 +89,18 @@ Node* addValue(int a, Node** current) {
   }
 }
 void Update(Node** node, Node** head) {
-  cout << "b" << endl;
   //Case 1: node is root, turn to black
   if (*node == *head) {
-    cout << "a" << endl;
     (*node)->setColor(1);
   }
   //Case 2: node's parent is black, do nothing
   else if (getParent(*head, (*node)->getValue())->getColor() == 1) {
-    cout << "c" << endl;
     //Do nothing, tree is valid
   }
   //Case 3: node's uncle and parent are red, switch colors of node, parent, uncle, and grandparent
   //and run grandparent through all 4 cases
   else if (getUncle(*head, getParent(*head, (*node)->getValue())->getValue()) != NULL &&
 	   getUncle(*head, getParent(*head, (*node)->getValue())->getValue())->getColor() == 0) {
-    cout << "d" << endl;
     getParent(*head, (*node)->getValue())->setColor(1);
     getUncle(*head, getParent(*head, (*node)->getValue())->getValue())->setColor(1);
     Node* grandparent = getParent(*head, getParent(*head, (*node)->getValue())->getValue());
@@ -113,7 +109,6 @@ void Update(Node** node, Node** head) {
   }
   //Case 4: node's parent is red and the uncle is black, shift
   else {
-    cout << "e" << endl;
     Node* grandparent = getParent(*head, getParent(*head, (*node)->getValue())->getValue());
     Node* parent = getParent(*head, (*node)->getValue());
     Node* uncle = getUncle(*head, getParent(*head, (*node)->getValue())->getValue());
