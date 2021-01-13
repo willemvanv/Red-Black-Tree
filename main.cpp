@@ -112,19 +112,112 @@ void Update(Node** node, Node** head) {
     Node* grandparent = getParent(*head, getParent(*head, (*node)->getValue())->getValue());
     Node* parent = getParent(*head, (*node)->getValue());
     Node* uncle = getUncle(*head, getParent(*head, (*node)->getValue())->getValue());
-    if (grandparent->getLchild() == parent) {
-      grandparent->setLchild(*node);
+    if ((grandparent->getLchild() == parent && parent->getRchild() == *node) ||
+	(grandparent->getRchild() == parent && parent->getLchild() == *node)) {
+      if (grandparent->getLchild() == parent) {
+	grandparent->setLchild(*node);
+      }
+      else {
+	grandparent->setRchild(*node);
+      }
+      if (parent->getLchild() == *node) {
+	(*node)->setRchild(parent);
+	parent->setLchild(NULL);
+      }
+      else {
+	(*node)->setLchild(parent);
+	parent->setRchild(NULL);
+      }
+      if (grandparent->getLchild() == *node) {
+	if (grandparent == *head) {
+	  (*node)->setRchild(grandparent);
+	  grandparent->setLchild(NULL);
+	  *head = *node;
+	  (*node)->setColor(1);
+	  grandparent->setColor(0);
+	}
+	else {
+	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
+	  (*node)->setRchild(grandparent);
+	  grandparent->setLchild(NULL);
+	  (*node)->setColor(1);
+	  grandparent->setColor(0);
+	  if (ggrandparent->getLchild() == grandparent) {
+	    ggrandparent->setLchild(*node);
+	  }
+	  else {
+	    ggrandparent->setRchild(*node);
+	  }
+	}
+      }
+      else {
+	if (grandparent == *head) {
+	  (*node)->setLchild(grandparent);
+	grandparent->setRchild(NULL);
+	*head = *node;
+	(*node)->setColor(1);
+	grandparent->setColor(0);
+	}
+	else {
+	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
+	  (*node)->setLchild(grandparent);
+	  grandparent->setRchild(NULL);
+	  (*node)->setColor(1);
+	  grandparent->setColor(0);
+	  if (ggrandparent->getLchild() == grandparent) {
+	    ggrandparent->setLchild(*node);
+	  }
+	  else {
+	    ggrandparent->setRchild(*node);
+	  }
+	}
+      }
     }
     else {
-      grandparent->setRchild(*node);
-    }
-    if (parent->getLchild() == *node) {
-      (*node)->setRchild(parent);
-      parent->setLchild(NULL);
-    }
-    else {
-      (*node)->setLchild(parent);
-      parent->setRchild(NULL);
+      if (grandparent->getLchild() == parent) {
+	if (grandparent == *head) {
+	  (parent)->setRchild(grandparent);
+	  grandparent->setLchild(NULL);
+	  *head = parent;
+	  (parent)->setColor(1);
+	  grandparent->setColor(0);
+	}
+	else {
+	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
+	  (parent)->setRchild(grandparent);
+	  grandparent->setLchild(NULL);
+	  (parent)->setColor(1);
+	  grandparent->setColor(0);
+	  if (ggrandparent->getLchild() == grandparent) {
+	    ggrandparent->setLchild(parent);
+	  }
+	  else {
+	    ggrandparent->setRchild(parent);
+	  }
+	}
+      }
+      else {
+	if (grandparent == *head) {
+	  (parent)->setLchild(grandparent);
+	  grandparent->setRchild(NULL);
+	  *head = parent;
+	  (parent)->setColor(1);
+	  grandparent->setColor(0);
+	}
+	else {
+	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
+	  (parent)->setLchild(grandparent);
+	  grandparent->setRchild(NULL);
+	  (parent)->setColor(1);
+	  grandparent->setColor(0);
+	  if (ggrandparent->getLchild() == grandparent) {
+	    ggrandparent->setLchild(parent);
+	  }
+	  else {
+	    ggrandparent->setRchild(parent);
+	  }
+	}
+      }
     }
   }
 }
