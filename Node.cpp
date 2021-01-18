@@ -34,6 +34,10 @@ Node* Node::getRchild() {
 int Node::getValue() {
   return value;
 }
+//Change value of a node
+void Node::setValue(int v) {
+  value = v;
+}
 //Get the color
 int Node::getColor() {
   return color;

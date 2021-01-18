@@ -14,6 +14,7 @@ class Node {
   Node* getLchild();
   Node* getRchild();
   int getValue();
+  void setValue(int v);
   int getColor();
   void setColor(int a);
  private:
