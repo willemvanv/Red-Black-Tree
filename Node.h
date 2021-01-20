@@ -17,10 +17,13 @@ class Node {
   void setValue(int v);
   int getColor();
   void setColor(int a);
+  Node* getParent();
+  void setParent(Node* a);
  private:
   int color;
   int value;
   Node* Lchild;
   Node* Rchild;
+  Node* parent;
 };
 #endif

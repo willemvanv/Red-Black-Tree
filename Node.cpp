@@ -9,6 +9,7 @@ Node::Node(int v) {
   value = v;
   Lchild = NULL;
   Rchild = NULL;
+  parent = NULL;
 }
 //Deconstructor
 Node::~Node() {
@@ -44,4 +45,10 @@ int Node::getColor() {
 }
 void Node::setColor(int a) {
   color = a;
+}
+Node* Node::getParent() {
+  return parent;
+}
+void Node::setParent(Node* a) {
+  parent = a;
 }

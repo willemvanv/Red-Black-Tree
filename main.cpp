@@ -24,13 +24,16 @@ void remove(Node** head);
 Node* goRight(Node* current);
 void replace(Node* parent, Node* node, Node* child);
 Node* getSibling(Node* current, Node* node);
-void removeCase1(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
-void removeCase2(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
-void removeCase3(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
-void removeCase4(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
-void removeCase5(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
-void removeCase6(Node* node, Node* n, Node* head, Node* parent, Node* grandparent);
+void removeCase1(Node* node);
+void removeCase2(Node* node);
+void removeCase3(Node* node);
+void removeCase4(Node* node);
+void removeCase5(Node* node);
+void removeCase6(Node* node);
 void findf(Node** head);
+void rotateR(Node* node);
+void rotateL(Node* node);
+void replace(Node* node, Node* child);
 
 int main() {
   //Variables
@@ -75,6 +78,7 @@ void add(Node** head) {
 void Add(Node** head, int value) {
   Node* a = addValue(value, head);
   Update(&a, head);
+  a->setParent(getParent(*head, (a)->getValue()));
 }
 //Add a value to the tree using binary search
 Node* addValue(int a, Node** current) {
@@ -130,14 +134,15 @@ void Update(Node** node, Node** head) {
   else {
     Node* grandparent = getParent(*head, getParent(*head, (*node)->getValue())->getValue());
     Node* parent = getParent(*head, (*node)->getValue());
-    Node* uncle = getUncle(*head, getParent(*head, (*node)->getValue())->getValue());
     if ((grandparent->getLchild() == parent && parent->getRchild() == *node) ||
 	(grandparent->getRchild() == parent && parent->getLchild() == *node)) {
       if (grandparent->getLchild() == parent) {
 	grandparent->setLchild(*node);
+	grandparent->getLchild()->setParent(grandparent);
       }
       else {
 	grandparent->setRchild(*node);
+	grandparent->getRchild()->setParent(grandparent);
       }
       if (parent->getLchild() == *node) {
 	(*node)->setRchild(parent);
@@ -147,95 +152,20 @@ void Update(Node** node, Node** head) {
 	(*node)->setLchild(parent);
 	parent->setRchild(NULL);
       }
-      if (grandparent->getLchild() == *node) {
-	if (grandparent == *head) {
-	  (*node)->setRchild(grandparent);
-	  grandparent->setLchild(NULL);
-	  *head = *node;
-	  (*node)->setColor(1);
-	  grandparent->setColor(0);
-	}
-	else {
-	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
-	  (*node)->setRchild(grandparent);
-	  grandparent->setLchild(NULL);
-	  (*node)->setColor(1);
-	  grandparent->setColor(0);
-	  if (ggrandparent->getLchild() == grandparent) {
-	    ggrandparent->setLchild(*node);
-	  }
-	  else {
-	    ggrandparent->setRchild(*node);
-	  }
-	}
+      parent->setParent(*node);
+      if ((*node)->getLchild() == parent) {
+	rotateR(grandparent);
       }
       else {
-	if (grandparent == *head) {
-	  (*node)->setLchild(grandparent);
-	grandparent->setRchild(NULL);
-	*head = *node;
-	(*node)->setColor(1);
-	grandparent->setColor(0);
-	}
-	else {
-	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
-	  (*node)->setLchild(grandparent);
-	  grandparent->setRchild(NULL);
-	  (*node)->setColor(1);
-	  grandparent->setColor(0);
-	  if (ggrandparent->getLchild() == grandparent) {
-	    ggrandparent->setLchild(*node);
-	  }
-	  else {
-	    ggrandparent->setRchild(*node);
-	  }
-	}
+	rotateL(grandparent);
       }
     }
     else {
-      if (grandparent->getLchild() == parent) {
-	if (grandparent == *head) {
-	  (parent)->setRchild(grandparent);
-	  grandparent->setLchild(NULL);
-	  *head = parent;
-	  (parent)->setColor(1);
-	  grandparent->setColor(0);
-	}
-	else {
-	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
-	  (parent)->setRchild(grandparent);
-	  grandparent->setLchild(NULL);
-	  (parent)->setColor(1);
-	  grandparent->setColor(0);
-	  if (ggrandparent->getLchild() == grandparent) {
-	    ggrandparent->setLchild(parent);
-	  }
-	  else {
-	    ggrandparent->setRchild(parent);
-	  }
-	}
+      if (parent->getLchild() == *node) {
+	rotateR(grandparent);
       }
       else {
-	if (grandparent == *head) {
-	  (parent)->setLchild(grandparent);
-	  grandparent->setRchild(NULL);
-	  *head = parent;
-	  (parent)->setColor(1);
-	  grandparent->setColor(0);
-	}
-	else {
-	  Node* ggrandparent = getParent(*head, (grandparent)->getValue());
-	  (parent)->setLchild(grandparent);
-	  grandparent->setRchild(NULL);
-	  (parent)->setColor(1);
-	  grandparent->setColor(0);
-	  if (ggrandparent->getLchild() == grandparent) {
-	    ggrandparent->setLchild(parent);
-	  }
-	  else {
-	    ggrandparent->setRchild(parent);
-	  }
-	}
+	rotateL(grandparent);
       }
     }
   }
@@ -278,6 +208,12 @@ void Print(Node* current, int dist) {
 }
 //Get parent of a node
 Node* getParent(Node* current, int val) {
+  if (current == NULL) {
+    return NULL;
+  }
+  if (current->getValue() == val) {
+    return NULL;
+  }
   if (current->getValue() > val) {
     if (current->getLchild()->getValue() == val) {
       return current;
@@ -294,6 +230,7 @@ Node* getParent(Node* current, int val) {
       return getParent(current->getRchild(), val);
     }
   }
+  return NULL;
 }
 //Get uncle of a node
 Node* getUncle(Node* current, int val) {
@@ -334,47 +271,6 @@ Node* find(Node* current, int val) {
     return find(current->getRchild(), val);
   }
 }
-void remove(Node** head) {
-  cout << "enter value of node you want to delete" << endl;
-  int a;
-  cin >> a;
-  if (find(*head, a) == NULL) {
-    cout << "value does not exist" << endl;
-  }
-  else {
-    removal(find(*head, a), head);
-  }
-}
-void removal(Node* node, Node** head) {
-  Node* parent = getParent(*head, (node)->getValue());
-  Node* grandparent = getParent(*head, getParent(*head, (node)->getValue())->getValue());
-  if (node->getLchild() != NULL && node->getRchild() != NULL) {
-    Node* replacement = goRight(node->getLchild());
-    Node* replacementParent = getParent(*head, replacement->getValue());
-    if (replacement->getLchild() != NULL) {
-      node->setValue(replacement->getValue());
-      replacement->setValue(replacement->getLchild()->getValue());
-      replacement->getLchild()->~Node();
-      replacement->setLchild(NULL);
-    }
-    else {
-      node->setValue(replacement->getValue());
-      replacementParent->setRchild(NULL);
-      replacement->~Node();
-    }
-  }
-  else {
-    Node* child = NULL;
-    if (node->getLchild() != NULL || node->getLchild() != NULL) {
-      if (node->getLchild() != NULL)
-	child = node->getLchild();
-      else
-	child = node->getRchild();
-    }
-    replace(parent, node, child);
-    removeCase1(node, child, *head, parent, grandparent);
-  }
-}
 Node* goRight(Node* current) {
   if (current->getRchild() == NULL) {
     return current;
@@ -391,164 +287,14 @@ void replace(Node* parent, Node* node, Node* child) {
     parent->setRchild(child);
   }
 }
-Node* getSibling(Node* current, Node* node) {
-  if (current == node) {
-    return NULL;
+Node* getSibling(Node* node) {
+  if (node->getParent()->getLchild() == node && node->getParent()->getRchild() != NULL) {
+    return node->getParent()->getRchild();
   }
-  else if (current->getLchild() == node) {
-    return current->getRchild();
+  else if (node->getParent()->getLchild() != NULL){
+    return node->getParent()->getLchild();
   }
-  else if (current->getRchild() == node) {
-    return current->getLchild();
-  }
-  else if (current->getValue() < node->getValue()) {
-    getSibling(current->getRchild(), node);
-  }
-  else if (current->getValue() > node->getValue()) {
-    getSibling(current->getLchild(), node);
-  }
-}
-void removeCase1(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  if (node == head) {
-    head = n;
-  }
-  else {
-    removeCase2(node, n, head, parent, grandparent);
-  }
-}
-void removeCase2(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  Node* s = getSibling(head, n);
-  if (s->getColor() == 0) {
-    s->setColor(1);
-    parent->setColor(0);
-    if (parent->getLchild() == n) {
-      if (s->getLchild() != NULL) {
-	Node* temp = s->getLchild();
-	s->setLchild(parent);
-	parent->setRchild(temp);
-      }
-      else {
-	s->setLchild(parent);
-	parent->setRchild(NULL);
-      }
-    }
-    else {
-      if (s->getRchild() != NULL) {
-	Node* temp = s->getRchild();
-	s->setRchild(parent);
-	parent->setLchild(temp);
-      }
-      else {
-	s->setRchild(parent);
-	parent->setLchild(NULL);
-      }
-    }
-    if (grandparent->getLchild() == parent) {
-      grandparent->setLchild(s);
-    }
-    else {
-      grandparent->setRchild(s);
-    }
-  }
-  removeCase3(node, n, head, parent, s);
-}
-void removeCase3(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  Node* s = getSibling(head, n);
-  if (parent->getColor() == 1 && s->getColor() == 1 && (s->getLchild() == NULL ||
-							s->getLchild()->getColor() == 1)
-      && (s->getRchild() == NULL || s->getRchild()->getColor() == 1)) {
-    s->setColor(0);
-    removeCase1(node, parent, head, grandparent, getParent(head, grandparent->getValue()));
-  }
-  else {
-    removeCase4(node, n, head, parent, grandparent);
-  }
-}
-void removeCase4(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  Node* s = getSibling(head, n);
-  if (parent->getColor() == 0 && s->getColor() == 1 && (s->getLchild() == NULL ||
-							s->getLchild()->getColor() == 1)
-      && (s->getRchild() == NULL || s->getRchild()->getColor() == 1)) {
-    parent->setColor(1);
-    s->setColor(0);
-  }
-  else {
-    removeCase5(node, n, head, parent, grandparent);
-  }
-}
-void removeCase5(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  Node* s = getSibling(head, n);
-  if (s->getColor() == 1) {
-    if (s->getLchild() != NULL && s->getLchild()->getColor() == 0 &&
-	(s->getRchild() == NULL || s->getRchild()->getColor() == 1) && parent->getLchild() == n) {
-      s->setColor(0);
-      s->getLchild()->setColor(1);
-      parent->setRchild(s->getLchild());
-      if (s->getLchild()->getRchild() != NULL) {
-	Node* temp = s->getLchild()->getRchild();
-	s->getLchild()->setRchild(s);
-	s->setLchild(temp);
-      }
-      else {
-	s->getLchild()->setRchild(s);
-	s->setLchild(NULL);
-      }
-    }
-    else if (s->getRchild() != NULL && s->getRchild()->getColor() == 0 &&
-	     (s->getLchild() == NULL || s->getLchild()->getColor() == 1) &&
-	     parent->getRchild() == n) {
-      s->setColor(0);
-      s->getRchild()->setColor(1);
-      parent->setLchild(s->getRchild());
-      if (s->getRchild()->getLchild() != NULL) {
-	Node* temp = s->getRchild()->getLchild();
-	s->getRchild()->setLchild(s);
-	s->setRchild(temp);
-      }
-      else {
-	s->getRchild()->setLchild(s);
-	s->setRchild(NULL);
-      }
-    }
-  }
-  else {
-    removeCase6(node, n, head, parent, grandparent);
-  }
-}
-void removeCase6(Node* node, Node* n, Node* head, Node* parent, Node* grandparent) {
-  Node* s = getSibling(head, n);
-  s->setColor(parent->getColor());
-  parent->setColor(1);
-  if (parent->getLchild() == n) {
-    s->getRchild()->setColor(1);
-    if (s->getLchild() != NULL) {
-      Node* temp = s->getLchild();
-      s->setLchild(parent);
-      parent->setRchild(temp);
-    }
-    else {
-      s->setLchild(parent);
-      parent->setRchild(NULL);
-    }
-  }
-  else {
-    s->getLchild()->setColor(1);
-    if (s->getRchild() != NULL) {
-      Node* temp = s->getRchild();
-      s->setRchild(parent);
-      parent->setLchild(temp);
-    }
-    else {
-      s->setRchild(parent);
-      parent->setLchild(NULL);
-    }
-  }
-  if (grandparent->getRchild() == parent) {
-    grandparent->setRchild(s);
-  }
-  else {
-    grandparent->setLchild(s);
-  }
+  return NULL;
 }
 void findf(Node** head) {
   cout << "enter value" << endl;
@@ -559,5 +305,196 @@ void findf(Node** head) {
   }
   else {
     cout << "value does not exist" << endl;
+  }
+}
+void rotateR(Node* node) {
+  Node* left = node->getLchild();
+  Node* right = node->getRchild();
+  if (left->getRchild() != NULL) {
+    Node* temp = left->getRchild();
+    left->setRchild(node);
+    node->setLchild(temp);
+  }
+  else {
+    left->setRchild(node);
+    node->setLchild(NULL);
+  }
+  if (node->getParent() != NULL) {
+    if (node->getParent()->getRchild() == node) {
+      node->getParent()->setRchild(left);
+    }
+    else {
+      node->getParent()->setLchild(left);
+    }
+    left->setParent(node->getParent());
+  }
+  node->setParent(right);
+}
+void rotateL(Node* node) {
+  Node* left = node->getLchild();
+  Node* right = node->getRchild();
+  if (right->getLchild() != NULL) {
+    Node* temp = right->getLchild();
+    right->setLchild(node);
+    node->setRchild(temp);
+  }
+  else {
+    right->setLchild(node);
+    node->setRchild(NULL);
+  }
+  if (node->getParent() != NULL) {
+    if (node->getParent()->getRchild() == node) {
+      node->getParent()->setRchild(right);
+    }
+    else {
+      node->getParent()->setLchild(right);
+    }
+    right->setParent(node->getParent());
+  }
+  node->setParent(right);
+}
+
+void remove(Node** head) {
+  cout << "enter value of node you want to delete" << endl;
+  int a;
+  cin >> a;
+  if (find(*head, a) == NULL) {
+    cout << "value does not exist" << endl;
+  }
+  else {
+    removal(find(*head, a), head);
+  }
+}
+void removal(Node* node, Node** head) {
+  Node* parent = node->getParent();
+  Node* grandparent = NULL;
+  if (parent != NULL) {
+    grandparent = parent->getParent();
+  }
+  if (node->getLchild() != NULL && node->getRchild() != NULL) {
+    Node* replacement = goRight(node->getLchild());
+    Node* replacementParent = replacement->getParent();
+    if (replacementParent == node) {
+      node->setValue(replacement->getValue());
+      node->setLchild(NULL);
+      replacement->~Node();
+    }
+    else {
+      if (replacement->getLchild() != NULL) {
+	node->setValue(replacement->getValue());
+	Node* temp = replacement->getLchild();
+	replacement->setLchild(NULL);
+	replacement->setValue(temp->getValue());
+        temp->~Node();
+      }
+      else {
+	node->setValue(replacement->getValue());
+	replacementParent->setRchild(NULL);
+	replacement->~Node();
+      }
+    }
+  }
+  else {
+    Node* child = NULL;
+    if (node->getRchild() != NULL || node->getLchild() != NULL) {
+      if (node->getRchild() != NULL)
+	child = node->getRchild();
+      else
+	child = node->getLchild();
+    }
+    replace(node, child);
+    if (node->getColor() == 1) {
+      if (child->getColor() == 0) {
+	child->setColor(1);
+      }
+      else {
+	removeCase1(child);
+      }
+    }
+    node->~Node();
+  }
+}
+void replace(Node* node, Node* child) {
+  Node* parent = node->getParent();
+  child->setParent(parent);
+  if (parent->getLchild() == node)
+    parent->setLchild(child);
+  else
+    parent->setRchild(child);
+}
+void removeCase1(Node* node) {
+  if (node->getParent() != NULL) {
+    removeCase2(node);
+  }
+}
+void removeCase2(Node* node) {
+  Node* s = getSibling(node);
+  if (s != NULL && s->getColor() == 0) {
+    node->getParent()->setColor(0);
+    s->setColor(1);
+    if (node == node->getParent()->getLchild())
+      rotateL(node->getParent());
+    else
+      rotateR(node->getParent());
+  }
+  removeCase3(node);
+}
+void removeCase3(Node* node) {
+  Node* s = getSibling(node);
+  Node* p = node->getParent();
+  if (s != NULL && s->getLchild() != NULL && s->getRchild() != NULL && p->getColor() == 1 &&
+      s->getColor() == 1 && s->getLchild()->getColor() == 1 && s->getRchild()->getColor() == 1) {
+    s->setColor(0);
+    removeCase1(p);
+  }
+  else
+    removeCase4(node);
+}
+void removeCase4(Node* node) {
+  Node* s = getSibling(node);
+  Node* p = node->getParent();
+  if (s != NULL && s->getLchild() != NULL && s->getRchild() != NULL && p->getColor() == 0 &&
+      s->getColor() == 1 && s->getLchild()->getColor() == 1 && s->getRchild()->getColor() == 1) {
+    s->setColor(0);
+    p->setColor(1);
+  }
+  else
+    removeCase5(node);
+}
+void removeCase5(Node* node) {
+  Node* s = getSibling(node);
+  Node* p = node->getParent();
+  if (s != NULL && s->getColor() == 1) {
+    if (p->getLchild() == node && s->getLchild() != NULL && s->getLchild()->getColor() == 0 &&
+	s->getRchild() != NULL && s->getRchild()->getColor() == 1) {
+      s->setColor(0);
+      s->getLchild()->setColor(1);
+      rotateR(s);
+    }
+    else if (p->getRchild() == node && s->getRchild() != NULL && s->getRchild()->getColor() == 0 &&
+	s->getLchild() != NULL && s->getLchild()->getColor() == 1) {
+      s->setColor(0);
+      s->getRchild()->setColor(1);
+      rotateL(s);
+    }
+  }
+  removeCase6(node);
+}
+void removeCase6(Node* node) {
+  Node* s = getSibling(node);
+  Node* p = node->getParent();
+  if (s != NULL) {
+    s->setColor(p->getColor());
+    p->setColor(1);
+    if (node == p->getLchild()) {
+      if (s->getRchild() != NULL)
+	s->getRchild()->setColor(1);
+      rotateL(p);
+    }
+    else {
+      if (s->getLchild() != NULL)
+	s->getLchild()->setColor(1);
+      rotateR(p);
+    }
   }
 }
