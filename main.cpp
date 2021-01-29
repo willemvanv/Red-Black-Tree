@@ -24,15 +24,15 @@ void remove(Node** head);
 Node* goRight(Node* current);
 void replace(Node* parent, Node* node, Node* child);
 Node* getSibling(Node* current, Node* node);
-void removeCase1(Node* node);
-void removeCase2(Node* node);
-void removeCase3(Node* node);
-void removeCase4(Node* node);
-void removeCase5(Node* node);
-void removeCase6(Node* node);
+void removeCase1(Node* node, Node** head);
+void removeCase2(Node* node, Node** head);
+void removeCase3(Node* node, Node** head);
+void removeCase4(Node* node, Node** head);
+void removeCase5(Node* node, Node** head);
+void removeCase6(Node* node, Node** head);
 void findf(Node** head);
-void rotateR(Node* node);
-void rotateL(Node* node);
+void rotateR(Node* node, Node** head);
+void rotateL(Node* node, Node** head);
 void replace(Node* node, Node* child);
 
 int main() {
@@ -78,7 +78,9 @@ void add(Node** head) {
 void Add(Node** head, int value) {
   Node* a = addValue(value, head);
   Update(&a, head);
-  a->setParent(getParent(*head, (a)->getValue()));
+  cout << "a" << endl;
+  if (*head != a)
+    a->setParent(getParent(*head, a->getValue()));
 }
 //Add a value to the tree using binary search
 Node* addValue(int a, Node** current) {
@@ -154,19 +156,23 @@ void Update(Node** node, Node** head) {
       }
       parent->setParent(*node);
       if ((*node)->getLchild() == parent) {
-	rotateR(grandparent);
+	rotateR(grandparent, head);
       }
       else {
-	rotateL(grandparent);
+	rotateL(grandparent, head);
       }
+      grandparent->setColor(0);
+      (*node)->setColor(1);
     }
     else {
       if (parent->getLchild() == *node) {
-	rotateR(grandparent);
+	rotateR(grandparent, head);
       }
       else {
-	rotateL(grandparent);
+	rotateL(grandparent, head);
       }
+      grandparent->setColor(0);
+      parent->setColor(1);
     }
   }
 }
@@ -307,7 +313,7 @@ void findf(Node** head) {
     cout << "value does not exist" << endl;
   }
 }
-void rotateR(Node* node) {
+void rotateR(Node* node, Node** head) {
   Node* left = node->getLchild();
   Node* right = node->getRchild();
   if (left->getRchild() != NULL) {
@@ -328,9 +334,11 @@ void rotateR(Node* node) {
     }
     left->setParent(node->getParent());
   }
+  else
+    *head = left;
   node->setParent(right);
 }
-void rotateL(Node* node) {
+void rotateL(Node* node, Node** head) {
   Node* left = node->getLchild();
   Node* right = node->getRchild();
   if (right->getLchild() != NULL) {
@@ -351,6 +359,8 @@ void rotateL(Node* node) {
     }
     right->setParent(node->getParent());
   }
+  else
+    *head = right;
   node->setParent(right);
 }
 
@@ -408,7 +418,7 @@ void removal(Node* node, Node** head) {
 	child->setColor(1);
       }
       else {
-	removeCase1(child);
+	removeCase1(child, head);
       }
     }
     node->~Node();
@@ -422,35 +432,35 @@ void replace(Node* node, Node* child) {
   else
     parent->setRchild(child);
 }
-void removeCase1(Node* node) {
+void removeCase1(Node* node, Node** head) {
   if (node->getParent() != NULL) {
-    removeCase2(node);
+    removeCase2(node, head);
   }
 }
-void removeCase2(Node* node) {
+void removeCase2(Node* node, Node** head) {
   Node* s = getSibling(node);
   if (s != NULL && s->getColor() == 0) {
     node->getParent()->setColor(0);
     s->setColor(1);
     if (node == node->getParent()->getLchild())
-      rotateL(node->getParent());
+      rotateL(node->getParent(), head);
     else
-      rotateR(node->getParent());
+      rotateR(node->getParent(), head);
   }
-  removeCase3(node);
+  removeCase3(node, head);
 }
-void removeCase3(Node* node) {
+void removeCase3(Node* node, Node** head) {
   Node* s = getSibling(node);
   Node* p = node->getParent();
   if (s != NULL && s->getLchild() != NULL && s->getRchild() != NULL && p->getColor() == 1 &&
       s->getColor() == 1 && s->getLchild()->getColor() == 1 && s->getRchild()->getColor() == 1) {
     s->setColor(0);
-    removeCase1(p);
+    removeCase1(p, head);
   }
   else
-    removeCase4(node);
+    removeCase4(node, head);
 }
-void removeCase4(Node* node) {
+void removeCase4(Node* node, Node** head) {
   Node* s = getSibling(node);
   Node* p = node->getParent();
   if (s != NULL && s->getLchild() != NULL && s->getRchild() != NULL && p->getColor() == 0 &&
@@ -459,9 +469,9 @@ void removeCase4(Node* node) {
     p->setColor(1);
   }
   else
-    removeCase5(node);
+    removeCase5(node, head);
 }
-void removeCase5(Node* node) {
+void removeCase5(Node* node, Node** head) {
   Node* s = getSibling(node);
   Node* p = node->getParent();
   if (s != NULL && s->getColor() == 1) {
@@ -469,18 +479,18 @@ void removeCase5(Node* node) {
 	s->getRchild() != NULL && s->getRchild()->getColor() == 1) {
       s->setColor(0);
       s->getLchild()->setColor(1);
-      rotateR(s);
+      rotateR(s, head);
     }
     else if (p->getRchild() == node && s->getRchild() != NULL && s->getRchild()->getColor() == 0 &&
 	s->getLchild() != NULL && s->getLchild()->getColor() == 1) {
       s->setColor(0);
       s->getRchild()->setColor(1);
-      rotateL(s);
+      rotateL(s, head);
     }
   }
-  removeCase6(node);
+  removeCase6(node, head);
 }
-void removeCase6(Node* node) {
+void removeCase6(Node* node, Node** head) {
   Node* s = getSibling(node);
   Node* p = node->getParent();
   if (s != NULL) {
@@ -489,12 +499,12 @@ void removeCase6(Node* node) {
     if (node == p->getLchild()) {
       if (s->getRchild() != NULL)
 	s->getRchild()->setColor(1);
-      rotateL(p);
+      rotateL(p, head);
     }
     else {
       if (s->getLchild() != NULL)
 	s->getLchild()->setColor(1);
-      rotateR(p);
+      rotateR(p, head);
     }
   }
 }
