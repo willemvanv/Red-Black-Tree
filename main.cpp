@@ -78,7 +78,6 @@ void add(Node** head) {
 void Add(Node** head, int value) {
   Node* a = addValue(value, head);
   Update(&a, head);
-  cout << "a" << endl;
   if (*head != a)
     a->setParent(getParent(*head, a->getValue()));
 }
